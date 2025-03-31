@@ -1,0 +1,1 @@
+rs-gemini-genai is a Rust wrapper around the Google Gemini API.
