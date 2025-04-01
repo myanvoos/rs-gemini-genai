@@ -1,16 +1,12 @@
+use crate::models::Model;
 
 mod api_client;
+mod models;
 
 #[derive(Debug)]
 pub struct GeminiClient {
     client: reqwest::Client,
     api_key: String
-}
-
-// Defines the 'model' module equivalent. It will have a lifetime that borrows from
-// the Gemini client (has temporary access to data) and won't live longer than GeminiClient
-pub struct Model<'a> {
-    client: &'a GeminiClient
 }
 
 // Implement the `new` method for the Gemini client
@@ -28,13 +24,6 @@ impl GeminiClient {
         Model { client: self }
     }
 }
-
-impl<'a> Model<'a> {
-    pub fn generate_content(&self, query: &str) -> &str {
-        "This is an example AI response"
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
