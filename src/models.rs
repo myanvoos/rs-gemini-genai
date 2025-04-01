@@ -8,6 +8,7 @@ pub struct Model<'a> {
 
 impl<'a> Model<'a> {
     pub fn generate_content(&self, query: &str) -> &str {
+        println!("query: {}", query);
         "This is an example AI response"
     }
 }
