@@ -1,12 +1,13 @@
 pub use crate::api_client::GeminiClient;
-pub use crate::models::{GenerateContentConfig, GenerateContentParameters};
+pub use crate::generate_content_types::{GenerateContentConfig, GenerateContentParameters};
 
 mod api_client;
 mod models;
+mod generate_content_types;
 
 #[cfg(test)]
 mod tests {
-    use crate::models::{GenerateContentConfig, GenerateContentParameters};
+    use crate::generate_content_types::{GenerateContentConfig, GenerateContentParameters};
     use super::*;
 
     #[test]
