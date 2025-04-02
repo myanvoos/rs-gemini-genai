@@ -1,6 +1,5 @@
 use crate::api_client::GeminiClient;
-
-
+use crate::GenerateContentParameters;
 
 // Defines the 'model' module equivalent. It will have a lifetime that borrows from
 // the Gemini client (has temporary access to data) and won't live longer than GeminiClient
