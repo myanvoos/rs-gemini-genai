@@ -1,4 +1,5 @@
-rs-gemini-genai is a Rust wrapper around the Google Gemini API.
+## Rust API wrapper for the Google Gemini API
+`rs-gemini-genai` is a Rust wrapper around the Google Gemini API. It's heavily inspired by the [official Python SDK](https://github.com/googleapis/python-genai).
 
 ### Example usage:
 ```rust
