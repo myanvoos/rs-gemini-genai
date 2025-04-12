@@ -1,5 +1,6 @@
 pub use crate::api_client::GeminiClient;
 pub use crate::generate_content_types::*;
+pub use crate::request::*;
 
 mod api_client;
 mod models;

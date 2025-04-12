@@ -22,8 +22,6 @@ rs-gemini-genai is a Rust wrapper around the Google Gemini API.
         .contents(GeminiContents::Single("Hello there Gemini. How are you doing?".to_string()))
         .build();
 
-    assert_eq!(params, params_builder);
-
     // Generate a response
     let response = models.generate_content(params)
         .await
@@ -31,3 +29,11 @@ rs-gemini-genai is a Rust wrapper around the Google Gemini API.
 
     println!("{:?}", response);
 ```
+
+### Checklist:
+
+- [ ] Generate single part text content
+- [ ] Generate multi-parts text content
+- [ ] Generate text content with system prompt
+- [ ] Generate text content with generation configs
+- [ ] Generate text content with streaming

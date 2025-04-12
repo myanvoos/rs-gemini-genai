@@ -1,5 +1,6 @@
 use dotenv::dotenv;
-use rs_gemini_genai::{GeminiClient, GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters, GenerateContentParametersBuilder};
+use serde_json::{json, to_string_pretty};
+use rs_gemini_genai::{Content, GeminiClient, GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters, GenerateContentParametersBuilder, HttpRequestBody, Part};
 
 #[tokio::main]
 async fn main() {
@@ -22,8 +23,6 @@ async fn main() {
         .contents(GeminiContents::Single("Hello there Gemini. How are you doing?".to_string()))
         .config(GenerateContentConfig::new("Be nice to me"))
         .build();
-
-    assert_eq!(params, params_builder);
 
     let response = models.generate_content(params).await.unwrap_or("Failed to generate response".to_string());
     println!("{:?}", response);
