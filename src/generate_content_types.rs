@@ -45,11 +45,11 @@ pub struct GenerateContentParametersBuilder {
 }
 
 impl GenerateContentParameters {
-    pub fn new(model: GeminiModels, contents: GeminiContents, config: &GenerateContentConfig) -> Self {
+    pub fn new(model: GeminiModels, contents: GeminiContents, config: GenerateContentConfig) -> Self {
         Self {
             model,
             contents,
-            config: config.clone(),
+            config,
         }
     }
 }

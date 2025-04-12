@@ -19,6 +19,10 @@ impl GeminiClient {
         Self { client: reqwest::Client::new(), api_key: api_key.to_string() }
     }
 
+    pub fn api_key(&self) -> &str {
+        &self.api_key
+    }
+
     // Return the 'model' service explicitly
     // Usage: GeminiClient::new(apiKey).models()
     pub fn models(&self) -> Model<'_> {

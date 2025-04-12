@@ -4,6 +4,7 @@ pub use crate::generate_content_types::*;
 mod api_client;
 mod models;
 mod generate_content_types;
+mod request;
 
 #[cfg(test)]
 mod tests {
