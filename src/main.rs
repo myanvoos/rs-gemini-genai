@@ -1,6 +1,6 @@
 use dotenv::dotenv;
 use serde_json::{json, to_string_pretty};
-use rs_gemini_genai::{Content, GeminiClient, GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters, GenerateContentParametersBuilder, HttpRequestBody, Part};
+use rs_gemini_genai::{Content, GeminiClient, GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters, GenerateContentParametersBuilder, HttpRequestBody, HttpRequestBuilder, Part};
 
 #[tokio::main]
 async fn main() {

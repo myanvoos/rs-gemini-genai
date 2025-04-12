@@ -19,8 +19,8 @@ impl GeminiClient {
         Self { client: reqwest::Client::new(), api_key: api_key.to_string() }
     }
 
-    pub fn api_key(&self) -> &str {
-        &self.api_key
+    pub fn api_key(&self) -> String {
+        self.api_key.clone()
     }
 
     // Return the 'model' service explicitly

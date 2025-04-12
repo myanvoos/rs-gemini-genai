@@ -5,7 +5,7 @@ use crate::models::Model;
 
 const GEMINI_API_URL: &str = "https://generativelanguage.googleapis.com/v1beta/models/";
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct Part {
     pub text: String,
 }
@@ -17,7 +17,7 @@ impl Part {
 }
 
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct Content {
     pub parts: Vec<Part>
 }
@@ -28,7 +28,7 @@ impl Content {
     }
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct HttpRequestBody {
     pub contents: Vec<Content>
 }
@@ -39,7 +39,7 @@ impl HttpRequestBody {
     }
 }
 
-struct HttpRequestClient {
+pub struct HttpRequestClient {
     client: reqwest::Client,
     request_body: HttpRequestBody,
     model_id: String,
@@ -48,29 +48,30 @@ struct HttpRequestClient {
 
 impl HttpRequestClient {
     pub async fn post(self) -> Result<Response, Error> {
-        let mut request_body_map = serde_json::Map::new();
-        // request_body_map.insert("contents".to_string(), Value::Array(self.request_body.contents));
-
         self.client.post(GEMINI_API_URL.to_owned() + &*self.model_id.to_string() + ":generateContent?key=" + &*self.api_key)
-            .json(&Value::Object(request_body_map))
+            .json(&self.request_body)
             .send()
             .await
     }
 }
 
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct HttpRequestBuilder {
     pub request_body: HttpRequestBody,
-    pub model_id: String,
+    pub model: String,
     api_key: String
 }
 
 impl HttpRequestBuilder {
-    pub fn new(mut self, api_key: &str) -> Self {
-        self.api_key = api_key.to_string();
+    pub fn new() -> Self { Self::default() }
+
+    pub fn api_key(mut self, api_key: String) -> Self {
+        self.api_key = api_key;
         self
     }
-    pub fn model(mut self, model_id: &str) -> Self {
-        self.model_id = model_id.to_string();
+
+    pub fn model(mut self, model_id: String) -> Self {
+        self.model = model_id.to_string();
         self
     }
     pub fn request_body(mut self, request_body: HttpRequestBody) -> Self {
@@ -82,7 +83,7 @@ impl HttpRequestBuilder {
         HttpRequestClient {
             client,
             request_body: self.request_body,
-            model_id: self.model_id,
+            model_id: self.model,
             api_key: self.api_key
         }
     }
