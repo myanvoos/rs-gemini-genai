@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use reqwest::Error;
 use serde_json::{json, Value};
 use crate::api_client::GeminiClient;
-use crate::{GeminiContents, GenerateContentParameters};
+use crate::{Content, GeminiContents, GenerateContentParameters, HttpRequestBody, HttpRequestBuilder, Part};
 
 // Defines the 'model' module equivalent. It will have a lifetime that borrows from
 // the Gemini client (has temporary access to data) and won't live longer than GeminiClient
@@ -11,35 +11,32 @@ pub struct Model<'a> {
     pub(crate) client: &'a GeminiClient
 }
 
-const GEMINI_API_URL: &str = "https://generativelanguage.googleapis.com/v1beta/models/";
-
 impl<'a> Model<'a> {
     pub async fn generate_content(&self, generate_content_parameters: GenerateContentParameters) -> Result<String, Error> {
         println!("Received generate content parameters: {:?}", &generate_content_parameters);
 
         let model = generate_content_parameters.model;
 
-        let parts_json: Vec<Value> = match  generate_content_parameters.contents {
+        let parts: Vec<Part> = match  generate_content_parameters.contents {
             GeminiContents::Single(text) => {
-                vec![json!({ "text": text })]
+                [ Part::new(text) ].to_vec()
             }
             GeminiContents::Multiple(texts) => {
                 texts.into_iter()
-                    .map(|text| json!({ "text": text }))
+                    .map(|text| Part::new(text))
                     .collect()
             }
         };
 
-        let contents_json = vec![json!({ "parts": parts_json })];
+        let contents = Content::new(parts);
+        let request_body = HttpRequestBody::new([ contents ].to_vec());
+        let http_request = HttpRequestBuilder::new()
+            .model(model.to_string())
+            .api_key(self.client.api_key().parse().unwrap())
+            .request_body(request_body)
+            .build();
 
-        let mut request_body_map = serde_json::Map::new();
-        request_body_map.insert("contents".to_string(), Value::Array(contents_json));
-
-        let client = reqwest::Client::new();
-        let res = client.post(GEMINI_API_URL.to_owned() + &*model.to_string() + ":generateContent?key=" + self.client.api_key())
-            .json(&Value::Object(request_body_map))
-            .send()
-            .await?;
+        let res = http_request.post().await?;
 
         match res.status() {
             reqwest::StatusCode::OK => {
