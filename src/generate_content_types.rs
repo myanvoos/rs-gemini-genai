@@ -1,12 +1,12 @@
 use strum_macros::{Display, EnumString};
 
 // Use a basic GenerateContentConfig struct for now
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GenerateContentConfig {
     system_instruction: String,
 }
 
-#[derive(Debug, Clone, Display, EnumString)]
+#[derive(Debug, Clone, Display, EnumString, PartialEq)]
 pub enum GeminiModels {
     #[strum(serialize = "gemini-1.5-pro")]
     Gemini15Pro,
@@ -18,16 +18,10 @@ pub enum GeminiModels {
     Gemini25ProExperimental,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GeminiContents {
     Single(String),
     Multiple(Vec<String>)
-}
-
-pub struct GenerateContentParameters {
-    model: GeminiModels,
-    contents: GeminiContents,
-    config: GenerateContentConfig
 }
 
 impl GenerateContentConfig {
@@ -35,14 +29,52 @@ impl GenerateContentConfig {
         Self { system_instruction: system_instruction.to_string() }
     }
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct GenerateContentParameters {
+    pub model: GeminiModels,
+    pub contents: GeminiContents,
+    pub config: GenerateContentConfig
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct GenerateContentParametersBuilder {
+    model: Option<GeminiModels>,
+    contents: Option<GeminiContents>,
+    config: Option<GenerateContentConfig>
+}
+
 impl GenerateContentParameters {
     pub fn new(model: GeminiModels, contents: GeminiContents, config: &GenerateContentConfig) -> Self {
         Self {
             model,
             contents,
-            // What's happening here? I need to take a temporarily borrowed instance i.e. &GenerateContentConfig and convert it to an *owned* one i.e. GenerateContentConfig for the struct
-            // Equivalent to *cloning* the borrowed instance. To do this I added the `Clone` trait to the struct allowing this
             config: config.clone(),
+        }
+    }
+}
+
+impl GenerateContentParametersBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn model(mut self, model: GeminiModels) -> Self {
+        self.model = Some(model);
+        self
+    }
+    pub fn contents(mut self, contents: GeminiContents) -> Self {
+        self.contents = Some(contents);
+        self
+    }
+    pub fn config(mut self, config: GenerateContentConfig) -> Self {
+        self.config = Some(config);
+        self
+    }
+    pub fn build(self) -> GenerateContentParameters {
+        GenerateContentParameters {
+            model: self.model.unwrap(),
+            contents: self.contents.unwrap(),
+            config: self.config.unwrap(),
         }
     }
 }
