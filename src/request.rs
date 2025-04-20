@@ -3,9 +3,26 @@ use serde_json::{json, Map, Value};
 use serde::Serialize;
 use crate::models::Model;
 
-const GEMINI_API_URL: &str = "https://generativelanguage.googleapis.com/v1beta/models/";
+const BASE_URL: &str = "https://generativelanguage.googleapis.com";
+const VERSION: &str = "v1beta";
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
+pub enum ModelMethod {
+    #[default]
+    GenerateContent,
+    GenerateContentStream
+}
+
+impl ModelMethod {
+    pub fn as_str(&self) -> &str {
+        match self {
+            ModelMethod::GenerateContent => "generateContent",
+            ModelMethod::GenerateContentStream => "streamGenerateContent",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct Part {
     pub text: String,
 }
@@ -17,7 +34,7 @@ impl Part {
 }
 
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct Content {
     pub parts: Vec<Part>
 }
@@ -28,7 +45,7 @@ impl Content {
     }
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct HttpRequestBody {
     pub contents: Vec<Content>
 }
@@ -39,38 +56,47 @@ impl HttpRequestBody {
     }
 }
 
-struct HttpRequestClient {
+pub struct HttpRequestClient {
     client: reqwest::Client,
     request_body: HttpRequestBody,
+    method: ModelMethod,
     model_id: String,
     api_key: String
 }
 
 impl HttpRequestClient {
     pub async fn post(self) -> Result<Response, Error> {
-        let mut request_body_map = serde_json::Map::new();
-        // request_body_map.insert("contents".to_string(), Value::Array(self.request_body.contents));
-
-        self.client.post(GEMINI_API_URL.to_owned() + &*self.model_id.to_string() + ":generateContent?key=" + &*self.api_key)
-            .json(&Value::Object(request_body_map))
+        let api_url = format!("{}/{}/models/{}:{}?key={}",
+                              BASE_URL, VERSION, self.model_id, self.method.as_str(), &self.api_key);
+        self.client.post(api_url)
+            .json(&self.request_body)
             .send()
             .await
     }
 }
 
+#[derive(Debug, Clone, Serialize, PartialEq, Default)]
 pub struct HttpRequestBuilder {
     pub request_body: HttpRequestBody,
-    pub model_id: String,
+    pub model: String,
+    pub method: ModelMethod,
     api_key: String
 }
 
 impl HttpRequestBuilder {
-    pub fn new(mut self, api_key: &str) -> Self {
-        self.api_key = api_key.to_string();
+    pub fn new() -> Self { Self::default() }
+
+    pub fn api_key(mut self, api_key: String) -> Self {
+        self.api_key = api_key;
         self
     }
-    pub fn model(mut self, model_id: &str) -> Self {
-        self.model_id = model_id.to_string();
+
+    pub fn model(mut self, model_id: String) -> Self {
+        self.model = model_id.to_string();
+        self
+    }
+    pub fn method(mut self, method: ModelMethod) -> Self {
+        self.method = method;
         self
     }
     pub fn request_body(mut self, request_body: HttpRequestBody) -> Self {
@@ -82,7 +108,8 @@ impl HttpRequestBuilder {
         HttpRequestClient {
             client,
             request_body: self.request_body,
-            model_id: self.model_id,
+            method: self.method,
+            model_id: self.model,
             api_key: self.api_key
         }
     }

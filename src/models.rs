@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use reqwest::Error;
+use reqwest::{Error, Response};
 use serde_json::{json, Value};
 use crate::api_client::GeminiClient;
-use crate::{GeminiContents, GenerateContentParameters};
+use crate::{Content, GeminiContents, GenerateContentParameters, HttpRequestBody, HttpRequestBuilder, ModelMethod, Part};
 
 // Defines the 'model' module equivalent. It will have a lifetime that borrows from
 // the Gemini client (has temporary access to data) and won't live longer than GeminiClient
@@ -11,36 +11,29 @@ pub struct Model<'a> {
     pub(crate) client: &'a GeminiClient
 }
 
-const GEMINI_API_URL: &str = "https://generativelanguage.googleapis.com/v1beta/models/";
-
 impl<'a> Model<'a> {
-    pub async fn generate_content(&self, generate_content_parameters: GenerateContentParameters) -> Result<String, Error> {
-        println!("Received generate content parameters: {:?}", &generate_content_parameters);
+    fn construct_request_body(&self, generate_content_parameters: &GenerateContentParameters) -> HttpRequestBody {
+        println!("Received generate content parameters: {:?}", generate_content_parameters);
 
-        let model = generate_content_parameters.model;
+        let model = generate_content_parameters.clone().model;
 
-        let parts_json: Vec<Value> = match  generate_content_parameters.contents {
+        let parts: Vec<Part> = match  generate_content_parameters.clone().contents {
             GeminiContents::Single(text) => {
-                vec![json!({ "text": text })]
+                [ Part::new(text) ].to_vec()
             }
             GeminiContents::Multiple(texts) => {
                 texts.into_iter()
-                    .map(|text| json!({ "text": text }))
+                    .map(|text| Part::new(text))
                     .collect()
             }
         };
 
-        let contents_json = vec![json!({ "parts": parts_json })];
+        let contents = Content::new(parts);
+        let request_body = HttpRequestBody::new([ contents ].to_vec());
+        request_body
+    }
 
-        let mut request_body_map = serde_json::Map::new();
-        request_body_map.insert("contents".to_string(), Value::Array(contents_json));
-
-        let client = reqwest::Client::new();
-        let res = client.post(GEMINI_API_URL.to_owned() + &*model.to_string() + ":generateContent?key=" + self.client.api_key())
-            .json(&Value::Object(request_body_map))
-            .send()
-            .await?;
-
+    async fn handle_response_return(&self, res: Response) -> Result<String, Error> {
         match res.status() {
             reqwest::StatusCode::OK => {
                 let response_json: Value = res.json().await?;
@@ -52,5 +45,35 @@ impl<'a> Model<'a> {
                 Ok("Something went wrong".to_string())
             }
         }
+    }
+
+    pub async fn generate_content(&self, generate_content_parameters: GenerateContentParameters) -> Result<String, Error> {
+        let request_body = self.construct_request_body(&generate_content_parameters);
+
+        let http_request = HttpRequestBuilder::new()
+            .model(generate_content_parameters.model.to_string())
+            .api_key(self.client.api_key().parse().unwrap())
+            .request_body(request_body)
+            .method(ModelMethod::GenerateContent)
+            .build();
+
+        let res = http_request.post().await?;
+
+        self.handle_response_return(res).await
+    }
+
+    pub async fn generate_content_stream(&self, generate_content_parameters: GenerateContentParameters) -> Result<String, Error> {
+        let request_body = self.construct_request_body(&generate_content_parameters);
+
+        let http_request = HttpRequestBuilder::new()
+            .model(generate_content_parameters.model.to_string())
+            .api_key(self.client.api_key().parse().unwrap())
+            .request_body(request_body)
+            .method(ModelMethod::GenerateContentStream)
+            .build();
+
+        let res = http_request.post().await?;
+
+        self.handle_response_return(res).await
     }
 }
