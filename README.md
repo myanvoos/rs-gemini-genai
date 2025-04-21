@@ -21,9 +21,16 @@ let params = GenerateContentParameters::new(
 );
 
 // Alternatively, use the builder pattern
-let params_builder = GenerateContentParametersBuilder::new()
+let params = GenerateContentParametersBuilder::new()
     .model(GeminiModels::Gemini20Flash)
-    .contents(GeminiContents::Single("Hello there Gemini. How are you doing?".to_string()))
+    .contents(
+        GeminiContents::Multiple(
+            vec![
+                "Write me a 20 word poem".to_string(),
+                "Then make the main character a turtle".to_string()
+            ]
+        ),
+    )
     .build();
 ```
 #### Text-only input
@@ -54,7 +61,7 @@ while let Some(chunk) = stream.next().await {
 ### Checklist:
 
 - [x] Generate single part text content
-- [ ] Generate multi-parts text content
+- [x] Generate multi-parts text content
 - [ ] Generate text content with system prompt
 - [ ] Generate text content with generation configs
 - [x] Generate text content with streaming

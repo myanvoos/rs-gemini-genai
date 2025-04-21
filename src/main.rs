@@ -4,7 +4,7 @@ use std::time::Duration;
 use dotenv::dotenv;
 use tokio::time::sleep;
 use tokio_stream::StreamExt;
-use rs_gemini_genai::GeminiClient;
+use rs_gemini_genai::{GeminiClient, GenerateContentParametersBuilder};
 use rs_gemini_genai::types::{GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters};
 
 #[tokio::main]
@@ -17,11 +17,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap_or("No API key found!".to_string()).as_str()
     );
     let models = client.models();
-    let params = GenerateContentParameters::new(
-        GeminiModels::Gemini20Flash,
-        GeminiContents::Single("Write me a 200 word story".to_string()),
-        GenerateContentConfig::new("Talk like a pirate.")
-    );
+    let params = GenerateContentParametersBuilder::new()
+        .model(GeminiModels::Gemini20Flash)
+        .contents(
+            GeminiContents::Multiple(
+                vec![
+                    "Write me a 20 word poem".to_string(),
+                    "Then make the main character a turtle".to_string()
+                ]
+            ),
+        )
+        .config(GenerateContentConfig::new("Talk like a pirate."))
+        .build();
 
     // let response = models.generate_content(params).await.unwrap_or("Failed to generate response".to_string());
     // println!("{:?}", response);
