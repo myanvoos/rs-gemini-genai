@@ -1,9 +1,15 @@
+use std::error::Error;
+use std::io::Write;
+use std::time::Duration;
 use dotenv::dotenv;
 use serde_json::{json, to_string_pretty};
-use rs_gemini_genai::{Content, GeminiClient, GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters, GenerateContentParametersBuilder, HttpRequestBody, Part};
+use tokio::time::sleep;
+use tokio_stream::StreamExt;
+use rs_gemini_genai::{Content, GeminiClient, HttpRequestBody};
+use rs_gemini_genai::types::{GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters, GenerateContentParametersBuilder, Part};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn Error>> {
     // Load the environment variables
     dotenv().ok();
 
@@ -14,18 +20,29 @@ async fn main() {
     let models = client.models();
     let params = GenerateContentParameters::new(
         GeminiModels::Gemini20Flash,
-        GeminiContents::Single("Hello there Gemini. How are you doing?".to_string()),
-        GenerateContentConfig::new("Be nice to me")
+        GeminiContents::Single("Write me a 200 word story".to_string()),
+        GenerateContentConfig::new("Talk like a pirate.")
     );
 
-    let params_builder = GenerateContentParametersBuilder::new()
-        .model(GeminiModels::Gemini20Flash)
-        .contents(GeminiContents::Single("Hello there Gemini. How are you doing?".to_string()))
-        .config(GenerateContentConfig::new("Be nice to me"))
-        .build();
+    // let response = models.generate_content(params).await.unwrap_or("Failed to generate response".to_string());
+    // println!("{:?}", response);
 
-    let response = models.generate_content(params).await.unwrap_or("Failed to generate response".to_string());
-    println!("{:?}", response);
+    let stream = models.generate_content_stream(params).await?;
+    tokio::pin!(stream);
+    while let Some(chunk) = stream.next().await {
+        match chunk {
+            Ok(text) => {
+                sleep(Duration::from_millis(250)).await;
+                print!("{}", text);
+                std::io::stdout().flush().unwrap();
+            }
+            Err(error) => {
+                eprintln!("Streaming error: {}", error);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 

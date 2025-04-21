@@ -2,6 +2,7 @@ use reqwest::{Error, Response};
 use serde_json::{json, Map, Value};
 use serde::Serialize;
 use crate::models::Model;
+use crate::types::{Content, Part};
 
 const BASE_URL: &str = "https://generativelanguage.googleapis.com";
 const VERSION: &str = "v1beta";
@@ -19,29 +20,6 @@ impl ModelMethod {
             ModelMethod::GenerateContent => "generateContent",
             ModelMethod::GenerateContentStream => "streamGenerateContent",
         }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Default)]
-pub struct Part {
-    pub text: String,
-}
-
-impl Part {
-    pub fn new(text_value: String) -> Self {
-        Self { text: text_value }
-    }
-}
-
-
-#[derive(Debug, Clone, Serialize, PartialEq, Default)]
-pub struct Content {
-    pub parts: Vec<Part>
-}
-
-impl Content {
-    pub fn new(parts: Vec<Part>) -> Self {
-        Content { parts }
     }
 }
 
@@ -66,8 +44,17 @@ pub struct HttpRequestClient {
 
 impl HttpRequestClient {
     pub async fn post(self) -> Result<Response, Error> {
-        let api_url = format!("{}/{}/models/{}:{}?key={}",
-                              BASE_URL, VERSION, self.model_id, self.method.as_str(), &self.api_key);
+        let mut api_url = String::from(BASE_URL);
+        match self.method {
+            ModelMethod::GenerateContent => {
+                api_url.push_str(&format!("/{}/models/{}:{}?key={}",
+                                 VERSION, self.model_id, self.method.as_str(), &self.api_key));
+            }
+            ModelMethod::GenerateContentStream => {
+                api_url.push_str(&format!("/{}/models/{}:{}?alt=sse&key={}",
+                                          VERSION, self.model_id, self.method.as_str(), &self.api_key));
+            }
+        }
         self.client.post(api_url)
             .json(&self.request_body)
             .send()

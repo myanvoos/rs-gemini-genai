@@ -1,27 +1,9 @@
 use strum_macros::{Display, EnumString};
+use crate::types::{GeminiContents, GeminiModels};
 
-// Use a basic GenerateContentConfig struct for now
 #[derive(Debug, Clone, PartialEq)]
 pub struct GenerateContentConfig {
     system_instruction: String,
-}
-
-#[derive(Debug, Clone, Display, EnumString, PartialEq)]
-pub enum GeminiModels {
-    #[strum(serialize = "gemini-1.5-pro")]
-    Gemini15Pro,
-    #[strum(serialize = "gemini-2.0-flash-001")]
-    Gemini20Flash,
-    #[strum(serialize = "gemini-2.0-flash-thinking-exp")]
-    Gemini20FlashThinkingExperimental,
-    #[strum(serialize = "gemini-2.5-pro-exp")]
-    Gemini25ProExperimental,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum GeminiContents {
-    Single(String),
-    Multiple(Vec<String>)
 }
 
 impl GenerateContentConfig {
