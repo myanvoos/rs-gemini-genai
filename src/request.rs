@@ -103,6 +103,7 @@ impl HttpRequestBuilder {
 #[cfg(test)]
 mod test {
     use serde_json::to_string_pretty;
+    use crate::Part;
     use super::*;
 
     #[test]
