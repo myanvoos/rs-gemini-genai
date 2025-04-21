@@ -1,8 +1,6 @@
 ## Rust API wrapper for Google Gemini APIs
 
-rs-gemini-genai is a Rust wrapper around the Google Gemini API. It it heavily inspired by the [official Python SDK](https://github.com/googleapis/python-genai).
-
-See [this Postman workspace](https://www.postman.com/ai-on-postman/google-gemini-apis/overview) for Google Gemini API REST API examples.
+rs-gemini-genai is a Rust wrapper around the Google Gemini API. It it heavily inspired by the [official Python SDK](https://github.com/googleapis/python-genai) and [this Postman workspace](https://www.postman.com/ai-on-postman/google-gemini-apis/overview).
 
 ### Example usage:
 #### Initialize the client
