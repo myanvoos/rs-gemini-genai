@@ -1,8 +1,6 @@
 use reqwest::{Error, Response};
-use serde_json::{json, Map, Value};
 use serde::Serialize;
-use crate::models::Model;
-use crate::types::{Content, Part};
+use crate::types::Content;
 
 const BASE_URL: &str = "https://generativelanguage.googleapis.com";
 const VERSION: &str = "v1beta";

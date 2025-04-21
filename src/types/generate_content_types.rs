@@ -1,4 +1,3 @@
-use strum_macros::{Display, EnumString};
 use crate::types::{GeminiContents, GeminiModels};
 
 #[derive(Debug, Clone, PartialEq)]

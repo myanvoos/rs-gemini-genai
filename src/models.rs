@@ -1,9 +1,5 @@
-use std::collections::HashMap;
-use std::io::Write;
-use std::time::Duration;
 use reqwest::{Error, Response};
-use serde_json::{json, to_string_pretty, Value};
-use tokio::time::sleep;
+use serde_json::{to_string_pretty, Value};
 use tokio_stream::{Stream, StreamExt};
 use tokio_stream::wrappers::ReceiverStream;
 use tokio::sync::mpsc;
@@ -18,20 +14,18 @@ pub struct Model<'a> {
     pub(crate) client: &'a GeminiClient
 }
 
-impl<'a> Model<'a> {
+impl Model<'_> {
     fn extract_response(&self, response_json: Value) -> String {
         response_json["candidates"][0]["content"]["parts"][0]["text"].as_str().unwrap_or("").to_string()
     }
     fn construct_request_body(&self, generate_content_parameters: &GenerateContentParameters) -> HttpRequestBody {
-        let model = generate_content_parameters.clone().model;
-
         let parts: Vec<Part> = match  generate_content_parameters.clone().contents {
             GeminiContents::Single(text) => {
                 [ Part::new(text) ].to_vec()
             }
             GeminiContents::Multiple(texts) => {
                 texts.into_iter()
-                    .map(|text| Part::new(text))
+                    .map(Part::new)
                     .collect()
             }
         };
@@ -101,8 +95,7 @@ impl<'a> Model<'a> {
                     Ok(chunk) => {
                         let text = String::from_utf8_lossy(&chunk);
                         for line in text.lines() {
-                            if line.starts_with("data: ") {
-                                let json_str = &line[6..]; // strip off "data: "
+                            if let Some(json_str) = line.strip_prefix("data: ") {
                                 if let Ok(json_value) = serde_json::from_str::<Value>(json_str) {
                                     if let Some(text_part) = json_value
                                         .get("candidates")

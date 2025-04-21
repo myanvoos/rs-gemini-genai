@@ -2,11 +2,10 @@ use std::error::Error;
 use std::io::Write;
 use std::time::Duration;
 use dotenv::dotenv;
-use serde_json::{json, to_string_pretty};
 use tokio::time::sleep;
 use tokio_stream::StreamExt;
-use rs_gemini_genai::{Content, GeminiClient, HttpRequestBody};
-use rs_gemini_genai::types::{GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters, GenerateContentParametersBuilder, Part};
+use rs_gemini_genai::GeminiClient;
+use rs_gemini_genai::types::{GeminiContents, GeminiModels, GenerateContentConfig, GenerateContentParameters};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
